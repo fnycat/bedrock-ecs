@@ -126,6 +126,7 @@ macro_rules! impl_bundle {
             where
                 // Ensure that we can sum the array of lengths.
                 crate::create_tarray!($($gen::AccessCount),*): FoldAdd,
+                // and ensure this sum can be used as a generic array length.
                 <crate::create_tarray!($($gen::AccessCount),*) as FoldAdd>::Output: ArrayLength
             {
                 /// The total amount of resources accessed by this system argument collection.

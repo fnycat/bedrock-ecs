@@ -14,6 +14,7 @@ use crate::world::World;
 #[cfg(not(feature = "generics"))]
 use smallvec::SmallVec;
 
+/// Unique ID of the resource.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ResourceId(pub(crate) TypeId);
 
@@ -23,13 +24,16 @@ impl ResourceId {
     }
 }
 
+/// A unique resource stored in the world, that can be accessed from systems.
 pub trait Resource: Send + Sync + 'static {
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
     fn into_any(self: Box<Self>) -> Box<dyn Any>;
 }
 
-/// A collection of [`Resource`]s.
+/// A tuple of [`Resource`]s.
+/// 
+/// This is convenient for inserting multiple resources at once.
 pub trait ResourceBundle {
     /// Inserts all [`Resource`]s into the given [`Resources`].
     fn insert_into(self, resources: &mut Resources);
@@ -85,7 +89,6 @@ unsafe impl<R: Resource> SysArg for Res<'_, R> {
     type AccessCount = U1;
     type Output<'s> = Res<'s, R>;
 
-    // Keep track of system and resource name for logging purposes.
     type State = ();
 
     #[cfg(feature = "generics")]
@@ -138,6 +141,10 @@ unsafe impl<R: Resource> SysArg for Res<'_, R> {
     fn after_update(world: &World, state: &mut Self::State) {}
 }
 
+/// Obtains mutable access to a global resource.
+/// 
+/// This obeys Rust's borrowing rules. In other words, if a system uses `ResMut<T>`, no other system
+/// can access the resource `T` at the same time.
 pub struct ResMut<'s, R: Resource>(&'s mut R);
 
 impl<R: Resource> Deref for ResMut<'_, R> {

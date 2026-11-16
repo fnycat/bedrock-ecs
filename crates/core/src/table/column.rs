@@ -8,7 +8,7 @@ use std::ptr::NonNull;
 use crate::prelude::Component;
 use crate::query::Filter;
 use crate::table::ChangeTracker;
-use crate::util::{ConstNonNull, LayoutExt, MutNonNull};
+use crate::util::{ConstNonNull, MutNonNull};
 
 #[cfg(debug_assertions)]
 use crate::util::debug::BorrowEnforcer;
@@ -289,9 +289,9 @@ impl Column {
 
         let (old_layout, _) = self
             .layout
-            .repeat_ext(self.cap)
+            .repeat(self.cap)
             .expect("invalid array layout");
-        let (new_layout, _) = self.layout.repeat_ext(cap).expect("invalid array layout");
+        let (new_layout, _) = self.layout.repeat(cap).expect("invalid array layout");
 
         assert!(
             isize::try_from(new_layout.size()).is_ok(),
@@ -577,7 +577,7 @@ impl Drop for Column {
             if self.layout.size() != 0 {
                 let (layout, _) = self
                     .layout
-                    .repeat_ext(self.cap)
+                    .repeat(self.cap)
                     .expect("invalid array layout");
                 // Safety:
                 //

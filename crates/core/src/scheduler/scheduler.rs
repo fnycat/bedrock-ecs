@@ -5,8 +5,7 @@ use std::{
         atomic::{AtomicU32, AtomicUsize, Ordering},
         mpsc,
     },
-    time::Instant,
-    u32,
+    time::Instant
 };
 #[cfg(feature = "inspect")]
 use std::{sync::Mutex, thread::ThreadId};

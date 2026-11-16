@@ -28,6 +28,9 @@ unsafe impl<R: Resource> UnsafeResourceCell for UnsafeCell<R> {
     }
 }
 
+/// Keeps track of the [`Resource`]s currently stored in the ECS.
+/// 
+/// [`Resource`]: crate::resource::Resource
 #[derive(Default)]
 pub struct Resources {
     pub(crate) storage: FxHashMap<ResourceId, Box<dyn UnsafeResourceCell>>,

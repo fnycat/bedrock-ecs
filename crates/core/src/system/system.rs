@@ -1,4 +1,5 @@
 use std::any::TypeId;
+use std::borrow::Cow;
 use std::cell::UnsafeCell;
 use std::sync::atomic::Ordering;
 
@@ -11,15 +12,19 @@ use crate::system::{SysArg, SysArgGroup};
 use crate::util::debug::BorrowEnforcer;
 use crate::world::World;
 
+/// Metadata of a system.
 #[derive(Debug)]
 pub struct SysMeta {
     /// For the Rust-only side of the ECS, using a static str is fine here,
     /// but for systems coming from WebAssembly the names are loaded at runtime.
-    pub(crate) name: String,
+    pub(crate) name: Cow<'static, str>,
     pub(crate) last_ran: u32,
 }
 
 impl SysMeta {
+    /// What was the last time this system has been called?
+    /// 
+    /// The result is in ticks.
     #[inline]
     pub fn last_ran(&self) -> u32 {
         self.last_ran
@@ -58,7 +63,7 @@ pub trait TypedSys<P: SysArgGroup>: Sized {
         let access = P::access(world);
         let meta = SysMeta {
             last_ran: 0, // World tick starts at 1, so this system will always run every single one of its change triggers.
-            name: name.to_owned(),
+            name: Cow::Borrowed(name),
         };
 
         let state = P::init(world, &meta);
@@ -217,6 +222,7 @@ impl<F: Fn(P::Output<'_>) + Sync, P: SysArg> TypedSys<P> for F {
     }
 }
 
+/// Implemented for all types that can be converted into a system.
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a valid system",
     label = "this system has invalid system arguments",
@@ -224,7 +230,9 @@ impl<F: Fn(P::Output<'_>) + Sync, P: SysArg> TypedSys<P> for F {
     note = "examples of valid system arguments are `Query`, `Local`, `Res`, etc..."
 )]
 pub trait IntoSys<P> {
+    /// Converts the function into a type erased [`Sys`].
     fn into_sys(self, world: &mut World) -> impl Sys + 'static;
+    /// Converts the function a type erased and boxed [`Sys`]
     fn into_boxed_sys(self, world: &mut World) -> Box<dyn Sys>;
 }
 
@@ -245,6 +253,9 @@ where
     }
 }
 
+/// Unique ID associated with a system.
+/// 
+/// Simply a newtype around a `u32`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct SysId(pub(crate) u32);

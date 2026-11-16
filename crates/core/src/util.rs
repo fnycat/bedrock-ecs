@@ -19,6 +19,7 @@ macro_rules! create_tarray {
     }
 }
 
+/// An [`UnsafeCell`] that implements `Send` and `Sync`.
 #[repr(transparent)]
 #[derive(Debug, Default)]
 pub struct SyncUnsafeCell<T: Send + Sync>(UnsafeCell<T>);
@@ -40,9 +41,12 @@ impl<T: Send + Sync> SyncUnsafeCell<T> {
     }
 }
 
+/// SAFETY: Safety preconditions need to be upheld by the user.
 unsafe impl<T: Send + Sync> Send for SyncUnsafeCell<T> {}
+/// SAFETY: Safety preconditions need to be upheld by the user.
 unsafe impl<T: Send + Sync> Sync for SyncUnsafeCell<T> {}
 
+/// Utility for quickly converting a reference to a const non-null pointer.
 pub trait AsConstNonNull<T: Send + Sync + ?Sized> {
     fn as_const_non_null(&self) -> ConstNonNull<T>;
 }
@@ -61,6 +65,7 @@ impl<T: Send + Sync + ?Sized> AsConstNonNull<T> for Box<T> {
     }
 }
 
+/// Utility for quickly converting a reference to a mut non-null pointer.
 #[repr(transparent)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct MutNonNull<T: Send + Sync + ?Sized>(NonNull<T>);
@@ -197,6 +202,8 @@ impl<T: Send + Sync> ConstNonNull<T> {
         Self(NonNull::without_provenance(ptr))
     }
 
+    /// Adds an unsigned offset to the current pointer.
+    /// 
     /// # Safety
     ///
     /// Same conditions as [`ptr::add`].
@@ -209,6 +216,13 @@ impl<T: Send + Sync> ConstNonNull<T> {
         Self(unsafe { self.0.add(n) })
     }
 
+    /// Computes a pointer offset from the current pointer by `n` copies of `T`.
+    /// 
+    /// # Safety
+    /// 
+    /// Same conditions as [`ptr::offset`].
+    /// 
+    /// [`ptr::offset`]: std::ptr::offset
     #[inline]
     pub const unsafe fn offset(&self, n: isize) -> Self {
         Self(unsafe { self.0.offset(n) })
@@ -231,26 +245,6 @@ impl<T: Send + Sync> From<MutNonNull<T>> for ConstNonNull<T> {
 
 unsafe impl<T: Send + Sync> Send for ConstNonNull<T> {}
 unsafe impl<T: Send + Sync> Sync for ConstNonNull<T> {}
-
-pub trait LayoutExt {
-    fn repeat_packed_ext(&self, n: usize) -> Option<Layout>;
-    fn repeat_ext(&self, n: usize) -> Option<(Layout, usize)>;
-}
-
-impl LayoutExt for Layout {
-    fn repeat_packed_ext(&self, n: usize) -> Option<Layout> {
-        if let Some(size) = self.size().checked_mul(n) {
-            Layout::from_size_align(size, self.align()).ok()
-        } else {
-            None
-        }
-    }
-
-    fn repeat_ext(&self, n: usize) -> Option<(Layout, usize)> {
-        let padded = self.pad_to_align();
-        padded.repeat_packed_ext(n).map(|r| (r, padded.size()))
-    }
-}
 
 #[cfg(debug_assertions)]
 pub mod debug {

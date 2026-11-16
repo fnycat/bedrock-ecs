@@ -1,9 +1,5 @@
 use std::{
-    cell::UnsafeCell,
-    collections::HashMap,
-    path::Path,
-    ptr::NonNull,
-    sync::{
+    borrow::Cow, cell::UnsafeCell, collections::HashMap, path::Path, ptr::NonNull, sync::{
         Arc, Mutex, Weak,
         atomic::{AtomicU32, Ordering},
     },
@@ -72,7 +68,7 @@ impl host::Host for PluginStore {
                         .upgrade()
                         .expect("no strong plugin references existed"),
                     meta: SysMeta {
-                        name: manifest.name,
+                        name: Cow::Owned(manifest.name),
                         last_ran: 0,
                     },
                     access: manifest

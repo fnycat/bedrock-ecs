@@ -13,8 +13,10 @@ use crate::sealed::Sealed;
 use crate::system::{SysArg, SysMeta};
 use crate::world::World;
 
+/// Persistent state keeping track of the inbox.
 #[derive(Debug, Default)]
 pub struct InboxState {
+    /// What is the index of the next message that should be returned when the inbox is queried.
     next_index: usize,
 }
 
@@ -25,7 +27,7 @@ pub struct Inbox<'a, T: Message> {
 
 impl<T: Message> Inbox<'_, T> {
     /// Returns the index of the next potential message.
-    pub fn last_seen(&self) -> MessageIndex {
+    pub fn head(&self) -> MessageIndex {
         MessageIndex(self.state.next_index)
     }
 }
@@ -87,6 +89,9 @@ unsafe impl<T: Message> SysArg for Inbox<'_, T> {
         }]
     }
 
+    /// Retrieves a reference to the mailbox.
+    /// 
+    /// The mailbox is stored as a resource of type `Mailbox<T>`.
     fn before_update<'w>(world: &'w World, state: &'w mut Self::State) -> Inbox<'w, T> {
         let bus = world.resources.get::<Mailbox<T>>().unwrap_or_else(|| {
             panic!(
