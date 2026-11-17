@@ -1,8 +1,10 @@
 [workspace]
 members = [
     "crates/core",
-    "crates/derive"
-, "crates/reflect", "crates/test-plugin"]
+    "crates/derive", 
+    "crates/reflect", 
+    #"crates/test-plugin"
+]
 resolver = "2"
 
 [profile.profiling]
