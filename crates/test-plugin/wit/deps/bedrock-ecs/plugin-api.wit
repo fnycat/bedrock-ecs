@@ -1,4 +1,4 @@
-package bedrock-ecs:plugin;
+package tecs:plugin;
 
 interface types {
     type component-id = u32;

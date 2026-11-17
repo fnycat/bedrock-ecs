@@ -17,8 +17,8 @@ use crate::{
         PluginError, PluginResult, WasmSystem,
         bindings::{
             self, Api,
-            bedrock_ecs::plugin::{host, system::SystemManifest, types::SystemId as WasmSystemId},
-            exports::bedrock_ecs::plugin::plugin::PluginManifest,
+            tecs::plugin::{host, system::SystemManifest, types::SystemId as WasmSystemId},
+            exports::tecs::plugin::plugin::PluginManifest,
         },
     },
     prelude::ScheduleBuilder,
@@ -120,7 +120,7 @@ pub struct Plugin {
 impl Plugin {
     pub fn init(&mut self) -> wasmtime::Result<()> {
         self.instance
-            .bedrock_ecs_plugin_plugin()
+            .tecs_plugin_plugin()
             .call_init(&mut self.store)?;
 
         tracing::trace!(
@@ -134,13 +134,13 @@ impl Plugin {
 
     pub fn get_manifest(&mut self) -> wasmtime::Result<PluginManifest> {
         self.instance
-            .bedrock_ecs_plugin_plugin()
+            .tecs_plugin_plugin()
             .call_get_manifest(&mut self.store)
     }
 
     pub fn deinit(&mut self) -> wasmtime::Result<()> {
         self.instance
-            .bedrock_ecs_plugin_plugin()
+            .tecs_plugin_plugin()
             .call_deinit(&mut self.store)?;
 
         tracing::trace!(
@@ -156,7 +156,7 @@ impl Plugin {
         tracing::trace!("calling system {id} in {}", self.manifest.name);
 
         self.instance
-            .bedrock_ecs_plugin_plugin()
+            .tecs_plugin_plugin()
             .call_call(&mut self.store, id)
     }
 }

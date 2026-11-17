@@ -1,5 +1,5 @@
-use bedrock_ecs::{entity::Entity, query::Query, world::World};
-use bedrock_ecs_derive::Component;
+use tecs::{entity::Entity, query::Query, world::World};
+use tecs_derive::Component;
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 
 // #[repr(align(64))]
@@ -37,7 +37,7 @@ fn bevy_bench_system(query: bevy_ecs::prelude::Query<(&Comp, &mut Comp2, &Comp3)
     }
 }
 
-#[derive(bedrock_ecs_derive::ScheduleLabel)]
+#[derive(tecs_derive::ScheduleLabel)]
 struct Label;
 
 fn iter_benchmark(c: &mut Criterion) {

@@ -4,7 +4,7 @@ use crate::{
     component::ComponentId,
     plugins::{
         Plugin, PluginId,
-        bindings::bedrock_ecs::plugin::system::{
+        bindings::tecs::plugin::system::{
             AccessDescriptor as PluginAccessDesc, AccessType as PluginAccessType, SystemManifest,
         },
     },

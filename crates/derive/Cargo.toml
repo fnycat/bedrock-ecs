@@ -1,5 +1,5 @@
 [package]
-name = "bedrock_ecs_derive"
+name = "tecs_derive"
 version = "0.1.0"
 edition = "2021"
 

@@ -1,10 +1,10 @@
-use bedrock_ecs::{
+use tecs::{
     prelude::ScheduleBuilder,
     query::Query,
     system::{SysArgGroup, TypedSys},
     world::World,
 };
-use bedrock_ecs_derive::{Component, ScheduleLabel};
+use tecs_derive::{Component, ScheduleLabel};
 use rayon::iter::{IndexedParallelIterator, ParallelIterator};
 
 #[derive(Component, Debug, Clone)]
@@ -47,7 +47,7 @@ fn par_iter_test() {
         .compact()
         .with_filter(
             tracing_subscriber::filter::Targets::new()
-                .with_target("bedrock_ecs", tracing::Level::TRACE),
+                .with_target("tecs", tracing::Level::TRACE),
         );
 
     tracing_subscriber::registry().with(fmt).init();

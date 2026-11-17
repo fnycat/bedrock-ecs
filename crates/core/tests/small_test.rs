@@ -1,10 +1,10 @@
-use bedrock_ecs::{
+use tecs::{
     entity::{Entity, EntityGeneration, EntityIndex},
     prelude::ScheduleBuilder,
     query::{Added, Query},
     world::World,
 };
-use bedrock_ecs_derive::{Component, ScheduleLabel};
+use tecs_derive::{Component, ScheduleLabel};
 
 #[derive(Component, Debug)]
 struct Counter(i32);

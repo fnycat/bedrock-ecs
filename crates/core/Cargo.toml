@@ -1,5 +1,5 @@
 [package]
-name = "bedrock_ecs"
+name = "tecs"
 version = "0.1.0"
 edition = "2024"
 
@@ -19,7 +19,7 @@ name = "iter"
 harness = false
 
 [dependencies]
-bedrock_ecs_derive = { path = "../derive" }
+tecs_derive = { path = "../derive" }
 smallvec = "1.13.2"
 paste = "1.0.15"
 rayon = "1.11.0"

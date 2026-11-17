@@ -1,4 +1,4 @@
-use bedrock_ecs::{
+use tecs::{
     command::Commands,
     entity::{Entity, EntityGeneration, EntityIndex},
     plugins::PluginRegistry,
@@ -6,7 +6,7 @@ use bedrock_ecs::{
     query::{Added, Query, Without},
     world::World,
 };
-use bedrock_ecs_derive::{Component, Resource, ScheduleLabel};
+use tecs_derive::{Component, Resource, ScheduleLabel};
 use rand::prelude::*;
 use wasmtime::{Caller, Engine, Linker, Module, Store};
 
@@ -269,7 +269,7 @@ fn massive_world_stress_test() {
         .compact()
         .with_filter(
             tracing_subscriber::filter::Targets::new()
-                .with_target("bedrock_ecs", tracing::Level::TRACE),
+                .with_target("tecs", tracing::Level::TRACE),
         );
 
     tracing_subscriber::registry().with(fmt).init();

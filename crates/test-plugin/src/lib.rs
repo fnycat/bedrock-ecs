@@ -1,11 +1,11 @@
 use crate::{
     bindings::{
-        bedrock_ecs::plugin::{
+        tecs::plugin::{
             host,
             system::{self, AccessDescriptor, AccessType, SystemManifest},
             types::ComponentId,
         },
-        exports::bedrock_ecs::plugin::plugin::{self, PluginManifest},
+        exports::tecs::plugin::plugin::{self, PluginManifest},
     },
     local::Local,
 };
@@ -17,10 +17,10 @@ mod bindings {
         path: ["./wit"],
         world: "component:plugin/plugin",
         with: {
-            "bedrock-ecs:plugin/types": generate,
-            "bedrock-ecs:plugin/system": generate,
-            "bedrock-ecs:plugin/host": generate,
-            "bedrock-ecs:plugin/plugin": generate,
+            "tecs:plugin/types": generate,
+            "tecs:plugin/system": generate,
+            "tecs:plugin/host": generate,
+            "tecs:plugin/plugin": generate,
         }
     });
 
