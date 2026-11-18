@@ -2,8 +2,7 @@
 members = [
     "crates/core",
     "crates/derive", 
-    "crates/reflect", 
-    #"crates/test-plugin"
+    "crates/reflect"
 ]
 resolver = "2"
 

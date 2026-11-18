@@ -7,6 +7,18 @@ use std::{
     ptr::NonNull,
 };
 
+/// Counts the amount of elements in a repetition, turning it into a `usize`.
+#[macro_export]
+macro_rules! count_repetitions {
+    () => {
+        0
+    };
+
+    ($head:ident $(,)? $($tail:ident),*) => {
+        1 + count_repetitions!($($tail),*)
+    }
+}
+
 /// Creates an array of type system integers.
 #[cfg(feature = "generics")]
 #[macro_export]
@@ -16,6 +28,25 @@ macro_rules! create_tarray {
     };
     ($head:ty, $($tail:ty),*) => {
         generic_array::typenum::TArr<$head, $crate::create_tarray!($($tail),*)>
+    }
+}
+
+/// An array with an unknown size.
+pub trait IterableArray<I> {
+    /// Yields an iterator over the array.
+    // Should not be named `iter` as that overrides the regular `Iterator` trait.
+    fn array_iter(self) -> impl Iterator<Item = I>;
+}
+
+impl<I> IterableArray<I> for I {
+    fn array_iter(self) -> impl Iterator<Item = I> {
+        std::iter::once(self)
+    }
+}
+
+impl<I, const N: usize> IterableArray<I> for [I; N] {
+    fn array_iter(self) -> impl Iterator<Item = I> {
+        <Self as IntoIterator>::into_iter(self)
     }
 }
 

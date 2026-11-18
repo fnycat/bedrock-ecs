@@ -361,12 +361,6 @@ impl Archetypes {
                 .get_column_by_type(&ty_id)
                 .expect("table was missing one of its required columns");
 
-            println!(
-                "column has {} rows, accessing row {}",
-                src_column.len(),
-                meta.row.0
-            );
-
             unsafe { src_column.copy_component(column, meta.row.0, current_tick) };
         }
 

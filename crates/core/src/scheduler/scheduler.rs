@@ -93,6 +93,8 @@ impl Scheduler {
             .for_each(|(a, b)| a.store(*b, Ordering::Release));
     }
 
+    /// Runs a single system. Further systems that depend on this one will also be ran if they become
+    /// unblocked.
     #[cfg(miri)]
     fn run_system<'a>(&'a self, id: usize, world: &'a World, s: &'a std::thread::Scope<'a, '_>) {
         s.spawn(move || {
@@ -133,6 +135,8 @@ impl Scheduler {
         });
     }
 
+    /// Runs a single system. Further systems that depend on this one will also be ran if they become
+    /// unblocked.
     #[cfg(not(miri))]
     fn run_system<'a>(&'a self, id: usize, world: &'a World, s: &Scope<'a>) {
         s.spawn(move |s| {
@@ -171,6 +175,8 @@ impl Scheduler {
     }
 
     pub fn run(&mut self, world: &mut World) {
+        println!("Running tick {}", world.current_tick);
+
         // Reset the in degrees.
         self.reset_in_degrees();
 

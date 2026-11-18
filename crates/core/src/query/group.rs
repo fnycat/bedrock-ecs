@@ -280,8 +280,6 @@ unsafe impl QueryData for Entity {
 
 /// Requests immutable access to a component of type `T`.
 ///
-/// Rather than returning `&T` directly, queries will give the `Ref<T>` type which automatically
-/// dereferences to `T`.
 ///
 /// # Access
 ///

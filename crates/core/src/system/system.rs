@@ -18,6 +18,7 @@ pub struct SysMeta {
     /// For the Rust-only side of the ECS, using a static str is fine here,
     /// but for systems coming from WebAssembly the names are loaded at runtime.
     pub(crate) name: Cow<'static, str>,
+    /// The previous tick that the system was invoked in.
     pub(crate) last_ran: u32,
 }
 
@@ -43,7 +44,7 @@ impl SysMeta {
 pub trait Sys: Sync {
     /// Returns the resources that this system accesses.
     fn access(&self) -> &[AccessDesc];
-
+    /// Returns the metadata associated with this system.
     fn meta(&self) -> &SysMeta;
     /// Executes the system.
     ///
@@ -53,6 +54,7 @@ pub trait Sys: Sync {
     unsafe fn call(&self, world: &World);
 }
 
+/// A system with associated parameters.
 pub trait TypedSys<P: SysArgGroup>: Sized {
     fn into_container(self, world: &mut World) -> SysContainer<P, Self> {
         let mut name = std::any::type_name::<Self>();
@@ -79,6 +81,7 @@ pub trait TypedSys<P: SysArgGroup>: Sized {
         }
     }
 
+    /// Execute the system.
     fn call(&self, world: &World, state: &mut P::State);
 }
 
@@ -86,19 +89,29 @@ pub trait TypedSys<P: SysArgGroup>: Sized {
 ///
 /// This is where the the states and metadata are stored.
 pub struct SysContainer<P: SysArgGroup, F: TypedSys<P>> {
+    /// 
     pub(crate) meta: UnsafeCell<SysMeta>,
+    /// The system that can be executed. This does not have to be a regular Rust closure.
+    /// Anything that implements `TypedSys` can be executed by a system container.
     pub(crate) system: F,
+    /// Persistent state of the system.
+    /// 
+    /// This contains the state of parameters that is persisted between invocations.
+    /// An example of this would be a counter keeping its count between invocations.
     pub(crate) state: UnsafeCell<P::State>,
 
     #[cfg(debug_assertions)]
     pub(crate) enforcer: BorrowEnforcer,
 
+    /// List of items that this systems needs to acess.
     #[cfg(feature = "generics")]
     pub(crate) access: GenericArray<AccessDesc, P::AccessCount>,
+    /// List of items that this systems needs to acess.
     #[cfg(not(feature = "generics"))]
     pub(crate) access: SmallVec<[AccessDesc; SysArg::INLINE_SIZE]>,
 }
 
+// `Send` has to be implemented manually due to the cells in the system container.
 unsafe impl<P, F> Send for SysContainer<P, F>
 where
     P: SysArgGroup,
@@ -106,6 +119,7 @@ where
 {
 }
 
+// `Sync` has to be implemented manually due to the cells in the system container.
 unsafe impl<P, F> Sync for SysContainer<P, F>
 where
     P: SysArgGroup,
@@ -181,6 +195,7 @@ macro_rules! impl_system {
     }
 }
 
+// Implement `Sys` for functions with up to 10 arguments.
 impl_system!(A, B);
 impl_system!(A, B, C);
 impl_system!(A, B, C, D);
@@ -207,7 +222,7 @@ where
 
     unsafe fn call(&self, world: &World) {
         // SAFETY:
-        // This is safe because every system has a unique state. At the same time a system
+        // This is safe because every system has a unique state. Additionally, a system
         // can be used on only one thread at a time.
         let state = unsafe { &mut *self.state.get() };
         self.system.call(world, state);

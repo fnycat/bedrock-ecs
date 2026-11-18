@@ -33,7 +33,7 @@ fn small_test() {
         world.spawn(Counter(i));
     }
 
-    let schedule = ScheduleBuilder::new(&mut world).add(Label, (counter_system1, counter_reader));
+    let schedule = ScheduleBuilder::new(&mut world).add_labeled(Label, (counter_system1, counter_reader));
     let mut scheduler = schedule.schedule();
 
     let ticks = 10;

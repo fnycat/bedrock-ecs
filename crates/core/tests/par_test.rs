@@ -87,7 +87,7 @@ fn par_iter_test() {
     }
     println!("Running systems");
 
-    let schedule = ScheduleBuilder::new(&mut world).add(Label, (par_sys));
+    let schedule = ScheduleBuilder::new(&mut world).add_labeled(Label, (par_sys));
     let mut scheduler = schedule.schedule();
 
     let ticks = 1;

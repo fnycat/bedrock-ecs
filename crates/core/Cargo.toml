@@ -7,8 +7,8 @@ edition = "2024"
 tracing = []
 generics = []
 inspect = []
-plugins = ["dep:wasmtime", "dep:wit-bindgen"]
-default = ["generics", "tracing", "inspect", "plugins"]
+plugins = ["dep:wasmtime", "dep:wit-bindgen", "dep:wasmtime-wasi"]
+default = ["generics", "tracing", "inspect"]
 
 [[bench]]
 name = "signature"
@@ -32,7 +32,7 @@ open = "5.3.3"
 
 wasmtime = { version = "50.0.1", optional = true, default-features = false, features = ["runtime", "cranelift", "parallel-compilation", "demangle", "component-model"] }
 wit-bindgen = { version = "0.63.0", optional = true }
-wasmtime-wasi = "50.0.1"
+wasmtime-wasi = { version = "50.0.1", optional = true }
 bytes = "1.11.1"
 nohash-hasher = "0.2.0"
 

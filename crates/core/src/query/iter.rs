@@ -26,16 +26,26 @@ use crate::world::World;
 pub trait FragmentIterator<'t, Q: QueryGroup + 't, F: Filter>:
     Iterator<Item = Q::Output<'t>>
 {
-    /// Creates a new iterator over the given cache.
+    /// Creates a new iterator using the given query state.
+    /// 
+    /// The iterator will iterate over the results produced by the query.
     fn from_state(state: &'t QueryState<Q, F>) -> Self;
 }
 
+/// An iterator over the results of a query.
 pub struct QueryIter<'query, Q: QueryGroup, F: Filter> {
+    /// The last tick this query was ran in.
     pub(crate) last_run_tick: u32,
+    /// The current tick.
     pub(crate) current_tick: u32,
+    /// How many items are remaining in the query? This disregards dynamic filters
+    /// as those are applied during iteration.
     pub(crate) remaining: usize,
+    /// Table cache that keeps a list of tables to iterate over.
     pub(crate) cache: std::slice::Iter<'query, TableCache<Q>>,
+    /// Pointer(s) to the current data of the iterator.
     pub(crate) base_ptrs: Q::CurrPtrs,
+    /// Optional dynamic filter state.
     pub(crate) filters: F::DynamicState,
 }
 
@@ -102,37 +112,56 @@ impl<'query, Q: QueryGroup, F: Filter> QueryIter<'query, Q, F> {
             false
         }
     }
+
+    /// Skips to the next pointer in the iterator, decrementing the `remaining` counter.
+    /// 
+    /// If no more items are remaining, this function does nothing.
+    fn skip_to_next(&mut self) {
+        if self.remaining > 0 {
+            self.remaining -= 1;
+
+            // SAFETY: This is sound because:
+            // - An offset of `1 * size_of::<Q>()` clearly fits in an `isize`.
+            // - 
+            self.base_ptrs = unsafe { Q::offset_ptrs(self.base_ptrs, 1) };
+        }
+    }
 }
 
 impl<'query, Q: QueryGroup, F: Filter> Iterator for QueryIter<'query, Q, F> {
     type Item = Q::Output<'query>;
 
-    #[allow(non_snake_case, unused)]
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        // Check whether iterator is empty
-        if self.remaining == 0 && !self.jump() {
-            return None;
+        loop {
+            // Check whether iterator is empty
+            if self.remaining == 0 && !self.jump() {
+                return None;
+            }
+
+            if !F::IS_ARCHETYPAL {
+                // todo!("dynamic filtering");
+                let should_return = F::apply_dynamic(&self.filters, self.last_run_tick);
+                if !should_return {
+                    // Attempt to fetch the next item.
+                    self.remaining -= 1;
+                    continue;
+                }
+            }
+
+            let item = unsafe { Q::fetch_relative(self.base_ptrs, 0, self.current_tick) };
+            self.remaining -= 1;
+            self.base_ptrs = unsafe { Q::offset_ptrs(self.base_ptrs, 1) };
+
+            return Some(item);
         }
-
-        if !F::IS_ARCHETYPAL {
-            todo!("support double ended iteration and arbitrary splitting");
-            let should_return = F::apply_dynamic(&self.filters, self.last_run_tick);
-            assert!(should_return);
-        }
-
-        let item = unsafe { Q::fetch_relative(self.base_ptrs, 0, self.current_tick) };
-        self.remaining -= 1;
-        self.base_ptrs = unsafe { Q::offset_ptrs(self.base_ptrs, 1) };
-
-        return Some(item);
     }
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let upper_bound = self.unfiltered_len();
 
-        if const { F::TRIVIAL } {
+        if F::TRIVIAL {
             // If this query performs no filtering, we know the exact size.
             (upper_bound, Some(upper_bound))
         } else {

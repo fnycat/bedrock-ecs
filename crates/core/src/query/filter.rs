@@ -21,8 +21,6 @@ pub trait ArchetypalFilter: Filter {}
 /// Marker trait for groups of archetypal filters.
 ///
 /// Similar to [`ArchetypalFilter`] but for groups instead.
-///
-/// [`ArchetypalFilter`]
 pub trait ArchetypalFilterGroup: FilterGroup {}
 
 /// Implements the filtering functionality in queries.
@@ -590,6 +588,7 @@ impl<T: Component> Filter for Added<T> {
             "constructing filter signature for `{}`",
             std::any::type_name::<Self>()
         );
+
         Added {
             signature: T::get_or_assign_signature(&mut archetypes.component_registry),
             _marker: PhantomData,
@@ -612,11 +611,13 @@ impl<T: Component> Filter for Added<T> {
         let col = table
             .get_column_by_type(&TypeId::of::<T>())
             .expect("table did not have expected column");
+        
         col.added_base_ptr()
     }
 
     #[inline]
     unsafe fn offset_dynamic_state(state: Self::DynamicState, offset: isize) -> Self::DynamicState {
+        // SAFETY: Safety is upheld by the caller.
         unsafe { state.offset(offset) }
     }
 

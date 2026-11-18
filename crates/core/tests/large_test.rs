@@ -1,14 +1,12 @@
 use tecs::{
     command::Commands,
     entity::{Entity, EntityGeneration, EntityIndex},
-    plugins::PluginRegistry,
     prelude::{Res, ResMut, ScheduleBuilder},
     query::{Added, Query, Without},
     world::World,
 };
 use tecs_derive::{Component, Resource, ScheduleLabel};
 use rand::prelude::*;
-use wasmtime::{Caller, Engine, Linker, Module, Store};
 
 #[derive(Debug, Copy, Clone, Component)]
 struct Position {
@@ -311,9 +309,9 @@ fn massive_world_stress_test() {
     world.add_resources(SpatialGrid::new(1.0));
 
     let mut schedule_builder = ScheduleBuilder::new(&mut world)
-        .add(Physics, (physics_step_system, gravity_apply_system))
-        .add(Logic, (ai_perception_system, chaos_spawner_system))
-        .add(
+        .add_labeled(Physics, (physics_step_system, gravity_apply_system))
+        .add_labeled(Logic, (ai_perception_system, chaos_spawner_system))
+        .add_labeled(
             Combat,
             (
                 (vitality_system, poison_aura_system),
@@ -321,32 +319,32 @@ fn massive_world_stress_test() {
                 sync_point,
             ),
         )
-        .add(Visuals, (sprite_transform_system));
+        .add_labeled(Visuals, (sprite_transform_system));
 
     // let mut schedule_builder =
     //     ScheduleBuilder::new(&mut world).add(Physics, (chaos_spawner_system, physics_step_system));
 
-    let status = std::process::Command::new("cargo")
-        .args([
-            "build",
-            "-p",
-            "test-plugin",
-            "--release",
-            "--target",
-            "wasm32-wasip2",
-        ])
-        .status()
-        .expect("failed to build test plugin");
+    // let status = std::process::Command::new("cargo")
+    //     .args([
+    //         "build",
+    //         "-p",
+    //         "test-plugin",
+    //         "--release",
+    //         "--target",
+    //         "wasm32-wasip2",
+    //     ])
+    //     .status()
+    //     .expect("failed to build test plugin");
 
-    assert!(status.success());
+    // assert!(status.success());
 
-    const WASM_PATH: &str = "../../target/wasm32-wasip2/release/test_plugin.wasm";
+    // const WASM_PATH: &str = "../../target/wasm32-wasip2/release/test_plugin.wasm";
     // const WASM_PATH: &str = "target/wasm32-wasip2/release/test_plugin.wasm";
 
-    let mut plugins = PluginRegistry::new().unwrap();
-    plugins.add(WASM_PATH).unwrap();
+    // let mut plugins = PluginRegistry::new().unwrap();
+    // plugins.add(WASM_PATH).unwrap();
 
-    plugins.resolve_systems(&mut schedule_builder).unwrap();
+    // plugins.resolve_systems(&mut schedule_builder).unwrap();
 
     let mut schedule = schedule_builder.schedule();
     let schedule_render = schedule.render_dependency_graph();
