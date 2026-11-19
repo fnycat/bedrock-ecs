@@ -34,7 +34,6 @@ pub struct Chained<P: SysArgGroup, G: SystemGroup<P>> {
 //     }
 // }
 
-
 /// Group of systems that can be inserted into a schedule.
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a valid system group",
